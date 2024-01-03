@@ -16,16 +16,39 @@ def create_app(test_config=None):
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
+
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,PATCH,POST,DELETE,OPTIONS'
+        return response
+        
 
     """
     @TODO:
     Create an endpoint to handle GET requests
     for all available categories.
     """
+
+    @app.route('/categories', methods=['GET'])
+    def get_categories():
+        categories = Category.query.all()
+        formatted_categories = [category.format() for category in categories]
+        formatted_categories_Object = {}
+        for category in formatted_categories:
+            formatted_categories_Object[category['id']] = category['type']
+        return jsonify({
+            'success': True,
+            'categories': formatted_categories_Object
+        })
+
+
 
 
     """
@@ -41,6 +64,34 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions.
     """
 
+    @app.route('/questions', methods=['GET'])
+    def get_questions():
+        page = request.args.get('page', 1, type=int)
+        start = (page - 1) * 10
+        end = start + 10
+        questions = Question.query.all()
+        formatted_questions = [question.format() for question in questions]
+        categories = Category.query.all()
+    
+
+        formatted_categories = [category.format() for category in categories]
+        formatted_categories_Object = {}
+        if len(formatted_questions[start:end]) == 0:
+            abort(404)
+        for category in formatted_categories:
+            formatted_categories_Object[category['id']] = category['type']
+        print(formatted_categories)
+        return jsonify({
+            'success': True,
+            'questions': formatted_questions[start:end],
+            'total_questions': len(formatted_questions),
+            'categories': formatted_categories_Object,
+            'current_category': None
+        })
+
+
+    
+
     """
     @TODO:
     Create an endpoint to DELETE question using a question ID.
@@ -48,6 +99,18 @@ def create_app(test_config=None):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
+
+    @app.route('/questions/<int:id>', methods=['DELETE'])
+    def delete_question(id):
+        question = Question.query.get(id)
+        if question is None:
+            abort(404)
+        question.delete()
+        return jsonify({
+            'success': True,
+            'deleted': id
+        })
+
 
     """
     @TODO:
@@ -60,6 +123,25 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.
     """
 
+    @app.route('/questions', methods=['POST'])
+    def add_question():
+        body = request.get_json()
+        question = body.get('question', None)
+        answer = body.get('answer', None)
+        difficulty = body.get('difficulty', None)
+        category = body.get('category', None)
+        if question is None or answer is None or difficulty is None or category is None:
+            abort(422)
+        question = Question(question=question, answer=answer, difficulty=difficulty, category=category)
+        question.insert()
+        return jsonify({
+            'success': True,
+            'created': question.id
+        })
+
+
+    
+
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
@@ -71,6 +153,24 @@ def create_app(test_config=None):
     Try using the word "title" to start.
     """
 
+    @app.route('/questions/search', methods=['POST'])
+    def search_questions():
+        body = request.get_json()
+        search_term = body.get('searchTerm', None)
+        if search_term is None:
+            abort(422)
+        questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+        formatted_questions = [question.format() for question in questions]
+        return jsonify({
+            'success': True,
+            'questions': formatted_questions,
+            'total_questions': len(formatted_questions),
+            'current_category': None
+        })
+
+
+    
+
     """
     @TODO:
     Create a GET endpoint to get questions based on category.
@@ -80,6 +180,24 @@ def create_app(test_config=None):
     category to be shown.
     """
 
+    @app.route('/categories/<int:id>/questions', methods=['GET'])
+    def get_questions_by_category(id):
+        category = Category.query.get(id)
+        if category is None:
+            abort(404)
+        questions = Question.query.filter_by(category=id).all()
+        formatted_questions = [question.format() for question in questions]
+        return jsonify({
+            'success': True,
+            'questions': formatted_questions,
+            'total_questions': len(formatted_questions),
+            'current_category': category.type
+        })
+
+
+    
+
+    
     """
     @TODO:
     Create a POST endpoint to get questions to play the quiz.
@@ -92,11 +210,64 @@ def create_app(test_config=None):
     and shown whether they were correct or not.
     """
 
+    @app.route('/quizzes', methods=['POST'])
+    def play_quiz():
+        body = request.get_json()
+        previous_questions = body.get('previous_questions', None)
+        quiz_category = body.get('quiz_category', None)
+        if previous_questions is None or quiz_category is None:
+            abort(422)
+        if quiz_category['id'] == 0:
+            questions = Question.query.all()
+        else:
+            questions = Question.query.filter_by(category=quiz_category['id']).all()
+        formatted_questions = [question.format() for question in questions]
+        question = random.choice(formatted_questions)
+        while question['id'] in previous_questions:
+            question = random.choice(formatted_questions)
+        return jsonify({
+            'success': True,
+            'question': question
+        })
+
+
+
+    
+
     """
     @TODO:
     Create error handlers for all expected errors
     including 404 and 422.
     """
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'bad request'
+        }), 400
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': 'resource not found'
+        }), 404
+    @app.errorhandler(405)
+    def not_allowed(error):
+        return jsonify({
+            'success': False,
+            'error': 405,
+            'message': 'method not allowed'
+        }), 405
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': 'unprocessable'
+        }), 422
 
     return app
 
