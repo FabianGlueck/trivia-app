@@ -71,22 +71,303 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 
 You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
 
-### Documentation Example
+### Documentation of Endpoint
 
-`GET '/api/v1.0/categories'`
+#### `GET '/categories'`
 
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
+**Description**
+This endpoint retrieves all categories from the database.
 
-```json
+**Parameters**
+No parameters are required for this endpoint.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`categories`: (object) An object where each key is a category ID and the `corresponding` value is the category type.
+
+**Error Handling**
+If there are no categories in the database, the server will respond with a 404 status code.
+
+**Example Request**
+`GET /categories`
+
+**Example Response**
+
+```
 {
-  "1": "Science",
-  "2": "Art",
-  "3": "Geography",
-  "4": "History",
-  "5": "Entertainment",
-  "6": "Sports"
+    "success": True,
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        // More categories...
+    }
+}
+```
+
+#### `GET '/questions'`
+
+**Description**
+This endpoint retrieves a paginated list of questions and all categories.
+
+**Parameters**
+page: (optional, integer) Specifies the page of questions to retrieve. Each page contains 10 questions. If not provided, defaults to 1.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`questions`: (array) A list of questions for the requested page. Each question is represented as a formatted object.
+`total_questions`: (integer) The total number of questions available.
+`categories`: (object) An object where each key is a category ID and the corresponding value is the category type.
+`current_category`: (null) This field is always null in the current implementation.
+
+**Error Handling**
+If there are no questions for the requested page, the server will respond with a 404 status code.
+
+**Example Request**
+`GET /questions?page=2`
+
+**Example Response**
+
+```
+ {
+    "success": True,
+    "questions": [
+        {
+            "id": 11,
+            "question": "What is the capital of Australia?",
+            "answer": "Canberra",
+            "difficulty": 3,
+            "category": 6
+        },
+        // More questions...
+    ],
+    "total_questions": 50,
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        // More categories...
+    },
+    "current_category": None
+}
+```
+
+#### DELETE /questions/{id}
+
+**Description**
+This endpoint deletes a question from the database.
+
+**Parameters**
+id: (required, integer) The ID of the question to be deleted.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`deleted`: (integer) The ID of the deleted question.
+
+**Error Handling**
+If the question with the provided ID does not exist, the server will respond with a 404 status code.
+
+**Example Request**
+`DELETE /questions/10`
+
+**Example Response**
+
+```
+{
+    "success": True,
+    "deleted": 10
+}
+```
+
+#### POST '/questions'
+
+**Description**
+This endpoint adds a new question to the database.
+
+**Request Body**
+A JSON object containing:
+
+`question`: (required, string) The text of the question.
+`answer`: (required, string) The answer to the question.
+`difficulty`: (required, integer) The difficulty level of the question.
+`category`: (required, integer) The ID of the category the question belongs to.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`created`: (integer) The ID of the created question.
+
+**Error Handling**
+If any of the required fields are missing in the request body, the server will respond with a 422 status code.
+
+**Example Request**
+`POST /questions`
+
+Request Body:
+
+```
+{
+    "question": "What is the capital of Australia?",
+    "answer": "Canberra",
+    "difficulty": 3,
+    "category": 6
+}
+```
+
+**Example Response**
+
+```
+{
+    "success": True,
+    "created": 11
+}
+```
+
+#### POST /questions/search
+
+**Description**
+This endpoint searches for questions that contain a given search term.
+
+**Request Bod**y
+A JSON object containing:
+
+`searchTerm`: (required, string) The term to search for in the questions.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`questions`: (array) A list of questions that contain the search term. Each question is represented as a formatted object.
+`total_questions`: (integer) The total number of questions that contain the search term.
+`current_category`: (null) This field is always null in the current implementation.
+
+**Error Handling**
+If the searchTerm field is missing in the request body, the server will respond with a 422 status code.
+
+**Example Request**
+POST `/questions/search`
+
+Request Body:
+
+```
+{
+    "searchTerm": "capital"
+}
+```
+
+**Example Response**
+
+```
+{
+    "success": True,
+    "questions": [
+        {
+            "id": 11,
+            "question": "What is the capital of Australia?",
+            "answer": "Canberra",
+            "difficulty": 3,
+            "category": 6
+        },
+        // More questions...
+    ],
+    "total_questions": 5,
+    "current_category": None
+}
+```
+
+#### GET /categories/{id}/questions
+
+**Description**
+This endpoint retrieves all questions for a specific category.
+
+**Parameters**
+`id`: (required, integer) The ID of the category for which to retrieve questions.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`questions`: (array) A list of questions for the requested category. Each question is represented as a formatted object.
+`total_questions`: (integer) The total number of questions in the requested category.
+`current_category`: (string) The type of the current category.
+
+**Error Handling**
+If the category with the provided ID does not exist, the server will respond with a 404 status code.
+
+**Example Request**
+GET `/categories/1/questions`
+
+**Example Response**
+
+```
+{
+    "success": True,
+    "questions": [
+        {
+            "id": 1,
+            "question": "What is the capital of Australia?",
+            "answer": "Canberra",
+            "difficulty": 3,
+            "category": 1
+        },
+        // More questions...
+    ],
+    "total_questions": 10,
+    "current_category": "Science"
+}
+```
+
+#### POST /quizzes
+
+**Description**
+This endpoint retrieves a random question for a quiz game. It ensures that the same question is not played twice.
+
+**Request Body**
+A JSON object containing:
+
+`previous_questions`: (required, array) A list of question IDs that have already been played.
+`quiz_category`: (required, object) An object containing the ID of the category for the quiz. If the ID is 0, questions from all categories are considered.
+
+**Response**
+A JSON object containing:
+
+`success`: (boolean) Indicates whether the request was successful.
+`question`: (object) A random question that has not been previously played. The question is represented as a formatted object.
+
+**Error Handling**
+If the previous_questions or quiz_category fields are missing in the request body, the server will respond with a 422 status code.
+
+**Example Request**
+POST `/quizzes`
+
+Request Body:
+
+```
+{
+    "previous_questions": [1, 2, 3],
+    "quiz_category": {
+        "id": 1
+    }
+}
+```
+
+**Example Response**
+
+```
+{
+    "success": True,
+    "question": {
+        "id": 4,
+        "question": "What is the capital of Australia?",
+        "answer": "Canberra",
+        "difficulty": 3,
+        "category": 1
+    }
 }
 ```
 
