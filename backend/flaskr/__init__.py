@@ -221,6 +221,8 @@ def create_app(test_config=None):
             questions = Question.query.all()
         else:
             questions = Question.query.filter_by(category=quiz_category['id']).all()
+        if len(questions) == 0:
+            abort(404)
         formatted_questions = [question.format() for question in questions]
         question = random.choice(formatted_questions)
         while question['id'] in previous_questions:

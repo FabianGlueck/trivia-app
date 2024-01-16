@@ -2,12 +2,16 @@ import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
+from dotenv import load_dotenv
 
-database_name = 'trivia'
-database_path = 'postgresql://{}/{}'.format('localhost:5432', database_name)
+load_dotenv()  # take environment variables from .env.
+print(os.getenv('DATABASE_NAME'))  # prints `None` if the variable is not found in .env
+# Code of your application, which uses environment variables (e.g. from `os.environ` or
+# `os.getenv`) as if they came from the actual environment.
+database_name = os.getenv('DATABASE_NAME')
+database_path = os.getenv('COMBINED_DATABASE_URL')
 
 db = SQLAlchemy()
-
 """
 setup_db(app)
     binds a flask application and a SQLAlchemy service

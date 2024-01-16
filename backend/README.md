@@ -318,7 +318,7 @@ GET `/categories/1/questions`
 }
 ```
 
-#### POST /quizzes
+### POST /quizzes
 
 **Description**
 This endpoint retrieves a random question for a quiz game. It ensures that the same question is not played twice.
