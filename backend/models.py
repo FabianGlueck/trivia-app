@@ -5,10 +5,7 @@ import json
 from dotenv import load_dotenv
 
 load_dotenv()  # take environment variables from .env.
-print(os.getenv('DATABASE_NAME'))  # prints `None` if the variable is not found in .env
-# Code of your application, which uses environment variables (e.g. from `os.environ` or
-# `os.getenv`) as if they came from the actual environment.
-database_name = os.getenv('DATABASE_NAME')
+
 database_path = os.getenv('COMBINED_DATABASE_URL')
 
 db = SQLAlchemy()
