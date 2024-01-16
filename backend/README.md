@@ -67,13 +67,9 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
 9. Create error handlers for all expected errors including 400, 404, 422, and 500.
 
-## Documenting your Endpoints
+## Documentation of Endpoints
 
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
-
-### Documentation of Endpoint
-
-#### `GET '/categories'`
+### GET /categories
 
 **Description**
 This endpoint retrieves all categories from the database.
@@ -106,7 +102,7 @@ If there are no categories in the database, the server will respond with a 404 s
 }
 ```
 
-#### `GET '/questions'`
+### GET /questions
 
 **Description**
 This endpoint retrieves a paginated list of questions and all categories.
@@ -154,7 +150,7 @@ If there are no questions for the requested page, the server will respond with a
 }
 ```
 
-#### DELETE /questions/{id}
+### DELETE /questions/{id}
 
 **Description**
 This endpoint deletes a question from the database.
@@ -183,7 +179,7 @@ If the question with the provided ID does not exist, the server will respond wit
 }
 ```
 
-#### POST '/questions'
+### POST /questions
 
 **Description**
 This endpoint adds a new question to the database.
@@ -228,7 +224,7 @@ Request Body:
 }
 ```
 
-#### POST /questions/search
+### POST /questions/search
 
 **Description**
 This endpoint searches for questions that contain a given search term.
@@ -280,7 +276,7 @@ Request Body:
 }
 ```
 
-#### GET /categories/{id}/questions
+### GET /categories/{id}/questions
 
 **Description**
 This endpoint retrieves all questions for a specific category.
